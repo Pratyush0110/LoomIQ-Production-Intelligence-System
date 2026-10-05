@@ -28,9 +28,14 @@ Thumbs.db
 *.tmp
 *.temp
 
-# Generated model/data artifacts
-*.pkl
-*.joblib
+# Private datasets
 *.csv
 *.xlsx
 *.xls
+
+# Model files ignored by default
+*.pkl
+*.joblib
+
+# Deployment model
+!models/production_model.pkl
