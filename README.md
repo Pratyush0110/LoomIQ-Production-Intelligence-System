@@ -1,50 +1,128 @@
-# Production Intelligence System
+# LoomIQ — Production Intelligence System
 
-A machine-learning-based production monitoring and anomaly detection dashboard built with Python, Streamlit, Pandas, Scikit-learn, and Plotly.
+> An ML-powered production monitoring and intelligence dashboard for analyzing machine-level manufacturing performance, predicting production output, and identifying unusual operating behavior.
 
-The system allows users to upload compatible production datasets and automatically analyzes machine-level operating behavior, production performance, and unusual operating patterns.
+**Live Demo:** https://loomiq-appuction-intelligence-system-xetzupcccpcsjaavn6b4vt.streamlit.app/  
+**GitHub:** https://github.com/Pratyush0110/LoomIQ-Production-Intelligence-System
 
-## Features
+---
 
-- Production performance analysis
-- Machine-learning-based anomaly detection using Isolation Forest
-- Machine-level monitoring
-- Actual vs expected production analysis when delivery-speed data is available
-- Detection of unusual operating behavior
-- Interactive production and anomaly tables
-- CSV and Excel dataset upload
-- Interactive Streamlit dashboard
-- Dynamic model training from the uploaded dataset
+## Overview
+
+**LoomIQ — Production Intelligence System** is a Streamlit-based machine-learning application designed for production monitoring and operational analysis.
+
+Users can upload compatible CSV or Excel production datasets and use the dashboard to:
+
+- monitor machine-level production performance
+- compare actual production with an expected baseline when delivery-speed data is available
+- detect unusual operating patterns using Isolation Forest
+- inspect individual machine behavior and historical records
+- generate production estimates using a trained Random Forest model
+- explore production and anomaly results through interactive Plotly visualizations
+
+The application is designed as a **decision-support and monitoring tool**, not as a replacement for engineering or operational judgment.
+
+---
+
+## Key Features
+
+### 📊 Production Analytics
+- Production and runtime KPIs
+- Machine-level production monitoring
+- Actual vs. expected production analysis
+- Production deviation and deviation percentage analysis
+- Interactive production tables and charts
+
+### 🤖 Machine Learning
+- **Random Forest** model for production prediction
+- **Isolation Forest** for unsupervised anomaly detection
+- Dynamic anomaly-model training on the uploaded dataset
+- Automatic selection of suitable numerical operating features
+- Standardized feature processing before anomaly detection
+
+### 🏭 Machine Monitoring
+- Machine selector for detailed inspection
+- Historical production analysis
+- Runtime and operating-parameter analysis
+- Recent machine records
+- Machine-level anomaly summaries
+
+### 📁 Flexible Data Input
+- CSV upload
+- XLSX upload
+- XLS upload
+- Automatic column cleaning and numerical conversion
+- Duplicate-record removal
+- Removal of report summary/total rows
+- Missing-value handling for supported analysis
+
+---
 
 ## How It Works
 
-### 1. Dataset Upload
+### 1. Upload Production Data
 
-The user uploads a CSV or Excel production dataset through the dashboard.
+The user uploads a compatible CSV or Excel production dataset through the Streamlit dashboard.
 
 ### 2. Data Processing
 
-The application automatically detects the dataset header, cleans column names, converts dates and numerical fields, removes duplicate records, removes total/summary rows, and handles missing values required for analysis.
+The application:
 
-### 3. Production Baseline
+1. cleans column names
+2. removes duplicate records
+3. removes report summary rows such as `Total`
+4. converts dates to datetime
+5. converts supported numerical fields to numeric values
+6. removes records missing the core fields required for analysis
 
-If the dataset contains a valid delivery-speed column (`Del Spd`), the application calculates an expected production baseline using:
+### 3. Expected Production Baseline
+
+When a genuine `Del Spd` (delivery speed) column is available, the application calculates:
 
 **Expected Production = Delivery Speed × Runtime**
 
-Production deviation can then be analyzed against the historical operating range.
+It then derives production-ratio and deviation metrics, including:
 
-If delivery-speed information is not available, production-deviation analysis is disabled while machine-learning-based operating analysis remains available.
+- Expected Production
+- Deviation (m)
+- Deviation (%)
+- Absolute Deviation (%)
 
-### 4. Machine Learning
+If `Del Spd` is not available, the application does **not** create an artificial production baseline. The operating-behavior analysis can still be performed.
 
-The application dynamically selects suitable numerical operating features from the uploaded dataset and trains an Isolation Forest model.
+### 4. Anomaly Detection
 
-The model identifies records whose overall operating behavior differs from the learned historical pattern.
+The application dynamically identifies suitable numerical operating features from the uploaded dataset.
 
-### 5. Machine Monitoring
+The selected features are:
 
-Users can select individual machines and inspect production performance, runtime, operating characteristics, historical feature ranges, and recent machine records.
+- cleaned and converted to numeric values
+- imputed where necessary
+- filtered to remove constant features
+- standardized using `StandardScaler`
+
+An **Isolation Forest** model is then trained on the uploaded operating records.
+
+The model labels records as:
+
+- `Normal`
+- `Anomaly`
+
+An anomaly indicates that the operating pattern is unusual relative to the data provided. It does not automatically indicate equipment failure.
+
+### 5. Production Prediction
+
+The application also loads a pre-trained **Random Forest production model** from:
+
+```text
+models/production_model.pkl
+```
+
+The prediction interface allows the user to enter operating conditions and obtain an estimated production value.
+
+The result is compared with the selected machine's historical average and median production when historical data is available.
+
+---
 
 ## Dataset Requirements
 
@@ -54,57 +132,111 @@ Users can select individual machines and inspect production performance, runtime
 |---|---|
 | `Mcno` | Machine identifier |
 | `Date` | Production date |
-| `Runtime(Min)` | Machine runtime |
-| `Prod Mtrs` | Production in meters |
+| `Runtime(Min)` | Machine runtime in minutes |
+| `Prod Mtrs` | Production output in meters |
 
-### Optional Production Baseline Column
+### Optional Production-Baseline Column
 
 | Column | Description |
 |---|---|
 | `Del Spd` | Delivery speed |
 
-If `Del Spd` is available, the dashboard can perform expected-production and production-deviation analysis.
+`Del Spd` is required only for the expected-production and production-deviation analysis.
 
-### Other Numerical Features
+### Supported Operating Variables
 
-The application can also use other numerical operating variables available in the dataset, such as:
+The application can use available numerical operating variables such as:
 
 - `Shift`
 - `Count`
 - `Stoptime(Min)`
-- `RPM`
-- `TPM`
-- `Total Units`
-- `kW/Hr`
-- `Tar RPM`
 - `Tar.Eff%`
 - `A%`
+- `Del Spd`
+- `Tar RPM`
+- `RPM`
+- `TPM`
+- `Total Dofftime`
+- `kW/Hr`
 - `UKG`
+- `Total Units`
 
-The exact features used by the anomaly model depend on the uploaded dataset.
+The exact feature set used by the anomaly detector depends on which valid numerical variables are present in the uploaded dataset.
 
-## Important Note About Column Names
+---
 
-`delivery` and `Del Spd` are treated as different fields.
+## Column-Name Handling
 
-The application does not assume that a generic `delivery` column represents delivery speed. This prevents incorrect production-baseline calculations when datasets use different meanings for similarly named columns.
+The application intentionally distinguishes between different field names.
 
-## Installation
+For example:
 
-Clone the repository:
-
-```bash
-git clone <YOUR_GITHUB_REPOSITORY_URL>
-cd production_intelligence_app
+```text
+Del Spd
+delivery
+delivery speed
 ```
 
-Install the dependencies:
+are not blindly treated as the same business field.
+
+The application uses explicit column normalization rules so that a similarly named field is not incorrectly interpreted as delivery speed and used to calculate an expected-production baseline.
+
+---
+
+## Technology Stack
+
+| Technology | Purpose |
+|---|---|
+| Python | Application and ML development |
+| Streamlit | Interactive web dashboard |
+| Pandas | Data processing and analysis |
+| NumPy | Numerical operations |
+| Scikit-learn | Machine learning |
+| Joblib | Model serialization/loading |
+| Plotly | Interactive visualizations |
+| OpenPyXL | XLSX file handling |
+| xlrd | XLS file handling |
+
+---
+
+## Project Structure
+
+```text
+LoomIQ-Production-Intelligence-System/
+│
+├── app.py
+├── requirements.txt
+├── README.md
+├── .gitignore
+│
+├── models/
+│   └── production_model.pkl
+│
+└── assets/
+    ├── textile_machine.jpg
+    └── textile_industry.jpg
+```
+
+---
+
+## Local Installation
+
+### 1. Clone the repository
+
+```bash
+git clone https://github.com/Pratyush0110/LoomIQ-Production-Intelligence-System.git
+cd LoomIQ-Production-Intelligence-System
+```
+
+### 2. Install dependencies
 
 ```bash
 pip install -r requirements.txt
 ```
 
-Run the application:
+For compatibility with the serialized production model, the project pins the required scikit-learn version in `requirements.txt`.
+
+### 3. Run the application
 
 ```bash
 streamlit run app.py
@@ -112,38 +244,56 @@ streamlit run app.py
 
 The application will open in your browser.
 
-## Project Structure
+---
 
-```text
-production_intelligence_app/
-├── app.py
-├── requirements.txt
-├── .gitignore
-└── README.md
-```
+## Deployment
 
-## Technology Stack
+The application is deployed using **Streamlit Community Cloud**.
 
-- Python
-- Streamlit
-- Pandas
-- NumPy
-- Scikit-learn
-- Plotly
-- OpenPyXL
+### Live Application
 
-## Privacy
+https://loomiq-appuction-intelligence-system-xetzupcccpcsjaavn6b4vt.streamlit.app/
 
-Do not publish confidential company production data, proprietary datasets, credentials, or internal business information to a public GitHub repository.
+---
 
-For demonstrations, use a synthetic or sanitized dataset.
+## Data Privacy
+
+This repository is intended for application code and deployment assets, not confidential production records.
+
+**Do not upload:**
+
+- confidential company production datasets
+- proprietary business data
+- credentials or API keys
+- internal reports
+- sensitive operational information
+
+For public demonstrations, use a **synthetic or sanitized dataset** and ensure you have permission to use any model or data derived from organizational information.
+
+---
+
+## Limitations
+
+- Anomaly detection is relative to the uploaded dataset and its operating patterns.
+- An anomaly does not automatically mean a machine has failed.
+- Expected-production analysis requires a valid `Del Spd` field.
+- Prediction quality depends on how representative the model's training data is of the production conditions being evaluated.
+- Uploaded datasets must contain the required core columns for production analysis.
+
+---
 
 ## Disclaimer
 
-The anomaly detection output identifies records with unusual operating patterns based on the uploaded dataset. An anomaly does not automatically mean that a machine has failed or that a production defect has occurred.
+This system is a **production monitoring and decision-support tool**.
 
-The system should be treated as a decision-support and monitoring tool rather than a replacement for engineering inspection or operational judgment.
+Its predictions and anomaly flags should be interpreted together with machine history, operating conditions, maintenance information, and engineering judgment. The application should not be treated as an autonomous fault-diagnosis or safety system.
+
+---
 
 ## Author
 
-Pratyush Singh Yadav
+**Pratyush Singh Yadav**
+
+Machine Learning / Data Science
+
+[GitHub](https://github.com/Pratyush0110)
