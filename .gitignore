@@ -34,3 +34,9 @@ Thumbs.db
 *.csv
 *.xlsx
 *.xls
+
+# Local application databases and backups
+users.db
+users_old_backup.db
+app_before_auth.py
+app_before_*.py
