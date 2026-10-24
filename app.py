@@ -1587,110 +1587,31 @@ current_role = st.session_state[
 
 
 # ============================================================
-# NORMAL USER ACCESS
-# ============================================================
-
-if current_role != "Head":
-
-    with st.sidebar:
-
-        st.markdown(
-            "### 👤 User Account"
-        )
-
-        st.success(
-            f"Logged in as {current_username}"
-        )
-
-        st.caption(
-            "Role: User"
-        )
-
-        st.warning(
-            "Analysis access is restricted "
-            "to the Head/Admin."
-        )
-
-        if st.button(
-            "Logout",
-            use_container_width=True,
-            key="user_logout"
-        ):
-
-            _logout_user()
-
-
-    st.markdown(
-        """
-        <div class="dashboard-title">
-            Welcome to Production Intelligence
-        </div>
-
-        <div class="dashboard-subtitle">
-            Your account is active.
-            Production analysis is available only
-            to the Head/Admin account.
-        </div>
-        """,
-        unsafe_allow_html=True
-    )
-
-    col1, col2, col3 = st.columns(3)
-
-    with col1:
-        st.metric(
-            "Account",
-            "Active"
-        )
-
-    with col2:
-        st.metric(
-            "Role",
-            "User"
-        )
-
-    with col3:
-        st.metric(
-            "Analysis Access",
-            "Restricted"
-        )
-
-    st.info(
-        "Contact the Head/Admin if you need access "
-        "to production analysis."
-    )
-
-    st.stop()
-
-
-# ============================================================
-# HEAD / ADMIN ACCESS
+# SHARED ACCESS FOR ALL LOGGED-IN USERS
 # ============================================================
 
 with st.sidebar:
 
-    st.markdown(
-        "### 👑 Head / Admin"
-    )
+    st.markdown("### 🏭 Production Intelligence")
 
     st.success(
         f"Logged in as {current_username}"
     )
 
-    st.caption(
-        "Role: Head / Admin"
-    )
+    if current_role == "Head":
+        st.caption("Role: Head / Admin")
+    else:
+        st.caption("Role: User")
 
-    st.success(
-        "Analysis Access Granted"
+    st.info(
+        "Full dashboard access is enabled for all logged-in users."
     )
 
     if st.button(
         "Logout",
         use_container_width=True,
-        key="head_logout"
+        key="shared_access_logout"
     ):
-
         _logout_user()
 
 
